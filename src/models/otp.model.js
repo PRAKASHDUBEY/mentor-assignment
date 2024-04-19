@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import {mailSender} from '../utils/mailSender';
+import {mailSender} from '../utils/mailSender.js';
 
 const OTPSchema = new mongoose.Schema({
     email: {
@@ -23,7 +23,7 @@ async function sendVerificationEmail(email, otp) {
 			email,
 			"Verification Email",
 			`<h1>Please confirm your OTP </h1>
-             <p> here is your OTP code:-> ${otp} </p>
+             <p> Your OTP is ${otp} </p>
             `
 		);
 	} catch (error) {
