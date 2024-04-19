@@ -135,3 +135,62 @@ const logoutUser = asyncHandler(async (req, res) => {
     .clearCookie("accessToken", options)
     .json(new ApiResponse(200, {}, "User logged Out"));
 });
+
+const getCurrentUser = asyncHandler(async (req, res) => {
+
+  const user = await User.findById(req.user._id).select("-password");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "User fetched successfully"));
+});
+
+const changeCurrentPassword = asyncHandler(async (req, res) => {
+
+  const { oldPassword, newPassword } = req.body;
+
+  const user = await User.findById(req.user._id);
+
+  const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+  if (!isPasswordCorrect) {
+    throw new ApiError(400, "Invalid old password");
+  }
+
+  user.password = newPassword;
+  await user.save({ validateBeforeSave: false });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Password changed successfully"));
+});
+
+const updateAccountDetails = asyncHandler(async (req, res) => {
+    const { location, age, work } = req.body;
+
+    const updatedFields = { location, age, work };
+    const filteredFields = Object.fromEntries(
+      Object.entries(updatedFields).filter(
+        ([_, value]) => value !== undefined && value !== 0
+      )
+    );
+
+    const user = await User.findById(req.user._id);
+
+    Object.assign(user, filteredFields);
+    await user.save();
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, user, "Account details updated successfully"));
+  }
+);
+
+export {
+  registerUser,
+  verifyOTP,
+  loginUser,
+  logoutUser,
+  getCurrentUser,
+  changeCurrentPassword,
+  updateAccountDetails,
+};
