@@ -46,7 +46,23 @@ const registerUser = asyncHandler(async (req, res) => {
 
   return res
     .status(201)
-    .json(new ApiResponse(201, createdUser, "User registered Successfully. Please verify OTP."));
+    .json(new ApiResponse(201, {}, "User registered Successfully. Please verify with OTP."));
+});
+
+const resendOTP = asyncHandler(async (req, res) => {
+  const {email} = req.body;
+  
+  const user = await User.findOne({ email });
+  if(user.isVerified){
+    throw new ApiError(400, "User already verified");
+  }
+
+  const otp = generateOTP();
+  await OTP.create({email, otp});
+
+  return res
+    .status(201)
+    .json(new ApiResponse(200, {}, "OTP send."));
 });
 
 
@@ -73,7 +89,7 @@ const verifyOTP = asyncHandler(async (req, res) => {
 
   return res
     .status(201)
-    .json(new ApiResponse(201, createdUser, "OTP Verified. Please Login."));
+    .json(new ApiResponse(200, {}, "OTP Verified. Please Login."));
 });
 
 const loginUser = asyncHandler(async (req, res) => {
@@ -103,7 +119,6 @@ const loginUser = asyncHandler(async (req, res) => {
 
   const options = {
     httpOnly: true,
-    secure: true,
     path:"/", 
   };
 
@@ -126,7 +141,6 @@ const logoutUser = asyncHandler(async (req, res) => {
 
   const options = {
     httpOnly: true,
-    secure: true,
     path:"/", 
   };
 
@@ -187,6 +201,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 
 export {
   registerUser,
+  resendOTP,
   verifyOTP,
   loginUser,
   logoutUser,
